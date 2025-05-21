@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processador de Arquivos KMZ</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .earth-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1;
+            filter: brightness(0.7) contrast(1.2);
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+        }
+        .glass-effect {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .dark-card {
+            background: rgba(31, 41, 55, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="earth-background"></div>
+    <div class="content-wrapper">
+        <!-- Header -->
+        <header class="glass-effect shadow-lg">
+            <nav class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marked-alt text-3xl text-blue-400 mr-3 floating"></i>
+                        <span class="text-2xl font-bold text-white">KMZ Processor</span>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-blue-400 transition-colors">Início</a>
+                        <a href="#" class="text-gray-300 hover:text-blue-400 transition-colors">Sobre</a>
+                        <a href="#" class="text-gray-300 hover:text-blue-400 transition-colors">Contato</a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <main class="container mx-auto px-6 py-12">
+            <div class="max-w-4xl mx-auto">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-6 p-4 rounded-lg {% if category == 'error' %}bg-red-900 text-red-200{% else %}bg-green-900 text-green-200{% endif %}">
+                                <div class="flex items-center">
+                                    <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-2"></i>
+                                    <span>{{ message }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                        Processe seus Arquivos KMZ com Facilidade
+                    </h1>
+                    <p class="text-xl text-gray-300">
+                        Converta seus arquivos KMZ em mapas interativos e relatórios detalhados
+                    </p>
+                </div>
+
+                <!-- Upload Card -->
+                <div class="dark-card rounded-2xl shadow-xl p-8 mb-12 hover-scale">
+                    <div class="text-center mb-8">
+                        <i class="fas fa-cloud-upload-alt text-5xl text-blue-400 mb-4 floating"></i>
+                        <h2 class="text-2xl font-semibold text-white mb-2">
+                            Faça Upload do seu Arquivo
+                        </h2>
+                        <p class="text-gray-300">
+                            Arraste e solte seu arquivo KMZ ou clique para selecionar
+                        </p>
+                    </div>
+
+                    <form action="/upload" method="post" enctype="multipart/form-data" class="space-y-6">
+                        <div class="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center hover:border-blue-400 transition-colors">
+                            <input type="file" 
+                                   name="file" 
+                                   accept=".kmz"
+                                   class="hidden" 
+                                   id="fileInput"
+                                   onchange="updateFileName(this)">
+                            
+                            <label for="fileInput" 
+                                   class="cursor-pointer inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-file-upload mr-2"></i>
+                                Escolher Arquivo
+                            </label>
+                            
+                            <p id="fileName" class="mt-4 text-sm text-gray-400">
+                                Nenhum arquivo selecionado
+                            </p>
+                        </div>
+
+                        <button type="submit" 
+                                class="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                            <i class="fas fa-cog mr-2"></i>
+                            Processar Arquivo
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Features Section -->
+                <div class="grid md:grid-cols-3 gap-8 mb-12">
+                    <div class="dark-card rounded-xl p-6 shadow-lg hover-scale">
+                        <div class="text-blue-400 text-3xl mb-4 floating">
+                            <i class="fas fa-map"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-white">Mapas Interativos</h3>
+                        <p class="text-gray-300">
+                            Visualize seus polígonos em mapas interativos com diferentes camadas
+                        </p>
+                    </div>
+
+                    <div class="dark-card rounded-xl p-6 shadow-lg hover-scale">
+                        <div class="text-blue-400 text-3xl mb-4 floating">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-white">Relatórios Detalhados</h3>
+                        <p class="text-gray-300">
+                            Receba relatórios completos sobre polígonos válidos e inválidos
+                        </p>
+                    </div>
+
+                    <div class="dark-card rounded-xl p-6 shadow-lg hover-scale">
+                        <div class="text-blue-400 text-3xl mb-4 floating">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-white">Validação Automática</h3>
+                        <p class="text-gray-300">
+                            Verificação automática de coordenadas e estrutura dos polígonos
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Info Section -->
+                <div class="dark-card rounded-xl p-6 shadow-lg hover-scale">
+                    <h3 class="text-xl font-semibold mb-4 text-white">Informações Importantes</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                            <span>Formatos aceitos: .kmz</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                            <span>Tamanho máximo: 16MB</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                            <span>Processamento seguro e rápido</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="glass-effect shadow-lg mt-12">
+            <div class="container mx-auto px-6 py-8">
+                <div class="text-center text-gray-300">
+                    <p>&copy; 2024 KMZ Processor. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function updateFileName(input) {
+            const fileName = input.files[0]?.name || 'Nenhum arquivo selecionado';
+            document.getElementById('fileName').textContent = fileName;
+        }
+
+        // Adiciona efeito de drag and drop
+        const dropZone = document.querySelector('.border-dashed');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('border-blue-400');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('border-blue-400');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('fileInput').files = files;
+            updateFileName(document.getElementById('fileInput'));
+        }
+    </script>
+</body>
+</html> 
